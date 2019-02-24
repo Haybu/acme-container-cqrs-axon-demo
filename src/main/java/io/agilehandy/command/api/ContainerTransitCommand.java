@@ -34,11 +34,6 @@ public class ContainerTransitCommand {
 	@TargetAggregateIdentifier
 	UUID id;
 
-	String originZoneName;
-	String originPortName;
-	String destZoneName;
-	String destPortName;
-	TransitType transitType;
 	TransitStatus transitStatus;
 	LocalDateTime transitTimestamp;
 

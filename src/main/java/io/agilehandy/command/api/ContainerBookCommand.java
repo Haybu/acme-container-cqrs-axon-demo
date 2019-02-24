@@ -34,8 +34,7 @@ public class ContainerBookCommand {
 	UUID id;
 
 	UUID shipmentId;
-	String OriginZoneName;
-	String OriginPortName;
+	TransitType transitType;
 	String DestZoneName;
 	String DestPortName;
 

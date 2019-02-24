@@ -30,8 +30,7 @@ import java.util.UUID;
 public class ContainerBooked {
 	UUID id;
 	UUID shipmentId;
-	String originZoneName;
-	String originPortName;
+	TransitType transitType;
 	String destZoneName;
 	String destPortName;
 }

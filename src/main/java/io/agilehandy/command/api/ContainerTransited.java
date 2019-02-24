@@ -28,15 +28,8 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerTranisted {
-
+public class ContainerTransited {
 	UUID id;
-
-	String originZoneName;
-	String originPortName;
-	String destZoneName;
-	String destPortName;
-	TransitType transitType;
 	TransitStatus transitStatus;
 	LocalDateTime transitTimestamp;
 }

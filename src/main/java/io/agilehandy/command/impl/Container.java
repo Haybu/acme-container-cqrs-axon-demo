@@ -98,15 +98,16 @@ public class Container {
 		// TODO: check others here.
 
 		apply (new ContainerBooked(containerBookCommand.getId(), containerBookCommand.getShipmentId(),
-				containerBookCommand.getOriginZoneName(), containerBookCommand.getOriginPortName(),
-				containerBookCommand.getDestZoneName(), containerBookCommand.getDestPortName()));
+				containerBookCommand.getTransitType(),
+				containerBookCommand.getDestZoneName()
+				, containerBookCommand.getDestPortName()));
 	}
 
 	@EventSourcingHandler
 	public void on(ContainerBooked containerBooked) {
 		this.shipmentId = containerBooked.getShipmentId();
-		this.originZoneName = containerBooked.getOriginPortName();
-		this.originPortName = containerBooked.getOriginPortName();
+		this.originZoneName = this.currentZoneName;
+		this.originPortName = this.currentPortName;
 		this.destZoneName = containerBooked.getDestZoneName();
 		this.destPortName = containerBooked.getDestPortName();
 		if(this.isAssigned)
@@ -136,26 +137,14 @@ public class Container {
 	@CommandHandler
 	public void transit(ContainerTransitCommand containerTransitCommand) {
 		// TODO: validation
-		apply (new ContainerTranisted(containerTransitCommand.getId(),
-				containerTransitCommand.getOriginZoneName(),
-				containerTransitCommand.getOriginPortName(),
-				containerTransitCommand.getDestZoneName(),
-				containerTransitCommand.getDestPortName(),
-				containerTransitCommand.getTransitType(),
+		apply (new ContainerTransited(containerTransitCommand.getId(),
 				containerTransitCommand.getTransitStatus(),
 				LocalDateTime.now()));
 	}
 
 	@EventSourcingHandler
-	public void on(ContainerTranisted containerTranisted) {
+	public void on(ContainerTransited containerTranisted) {
 		this.transitStatus = containerTranisted.getTransitStatus();
-		this.transitType = containerTranisted.getTransitType();
-		if (this.getTransitStatus() == TransitStatus.TRANSIT) {
-			this.originZoneName = containerTranisted.getOriginZoneName();
-			this.originPortName = containerTranisted.getOriginPortName();
-			this.destZoneName = containerTranisted.getDestZoneName();
-			this.destPortName = containerTranisted.getDestPortName();
-		}
 		this.transitTimestamp = containerTranisted.getTransitTimestamp();
 	}
 

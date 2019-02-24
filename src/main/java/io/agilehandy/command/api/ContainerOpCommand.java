@@ -34,4 +34,5 @@ public class ContainerOpCommand {
 	UUID id;
 	OpStatus opStatus;
 	Float usedSize;
+
 }
