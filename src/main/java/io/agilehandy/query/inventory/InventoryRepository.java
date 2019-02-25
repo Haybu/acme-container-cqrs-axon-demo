@@ -15,27 +15,12 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.query.inventory;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
-
-import java.util.UUID;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author Haytham Mohamed
  **/
-@Value
-@AllArgsConstructor
-public class ContainerBookCommand {
-
-	@TargetAggregateIdentifier
-	UUID id;
-
-	UUID shipmentId;
-	TransitType transitType;
-	String DestZoneName;
-	String DestPortName;
-
+public interface InventoryRepository extends CrudRepository<Inventory, InventoryKey> {
 }

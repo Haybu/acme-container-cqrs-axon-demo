@@ -32,7 +32,6 @@ public class ContainerOpCommand {
 
 	@TargetAggregateIdentifier
 	UUID id;
-	OpStatus opStatus;
 	Float usedSize;
 
 }

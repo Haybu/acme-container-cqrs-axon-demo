@@ -17,14 +17,13 @@
 
 package io.agilehandy.client;
 
-import io.agilehandy.command.api.ContainerBookCommand;
+import io.agilehandy.command.api.ContainerReserveCommand;
 import io.agilehandy.command.api.ContainerCreateCommand;
 import io.agilehandy.command.api.ContainerOpCommand;
-import io.agilehandy.command.api.ContainerTransitCommand;
-import io.agilehandy.command.api.OpStatus;
-import io.agilehandy.command.api.TransitStatus;
-import io.agilehandy.command.api.TransitType;
+import io.agilehandy.command.api.ContainerTransmitCommand;
+import io.agilehandy.command.api.TransmitType;
 import io.agilehandy.command.impl.Container;
+import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -40,42 +39,58 @@ import java.util.UUID;
 @Component
 public class ContainerClient {
 
+	private final CommandGateway commandGateway;
+
+	public ContainerClient(CommandGateway commandGateway) {
+		this.commandGateway = commandGateway;
+	}
+
 	public CommandLineRunner clr() {
 		return args -> {
 			// create 5 containers
 			List<Container> containers = new ArrayList<>();
 			for (int i = 0; i< 6; i++) {
 				ContainerCreateCommand cmd = new ContainerCreateCommand(UUID.randomUUID(),
-								100f, "zone-1", "port-1");
-				containers.add(new Container(cmd));
+								new Random().nextInt(6) * 100f, "zone-1", "port-1");
+
+				containers.add(commandGateway.sendAndWait(cmd));
 			}
-			// book 2 containers
-			Container container1 = containers.get(new Random().nextInt(containers.size()));
-			Container container2 = containers.get(new Random().nextInt(containers.size()));
 
-			ContainerBookCommand bookCommand1 = new ContainerBookCommand(container1.getId(),
-					UUID.randomUUID(), TransitType.PRIORITY, "zone-3", "port-3");
+			// pick a container
+			Container container = containers.get(new Random().nextInt(containers.size()));
 
-			ContainerBookCommand bookCommand2 = new ContainerBookCommand(container2.getId(),
-					UUID.randomUUID(), TransitType.STANDARD,"zone-5", "port-5");
+			// reserve a container
+			ContainerReserveCommand bookCommand = new ContainerReserveCommand(container.getId(),
+					UUID.randomUUID(), TransmitType.PRIORITY, "zone-3", "port-3");
 
-			container1.book(bookCommand1);
-			container2.book(bookCommand2);
+			container.reserve(bookCommand);
 
-			// start loading container 1
-			ContainerOpCommand opCommand = new ContainerOpCommand(container1.getId(),
-					OpStatus.LOADING_STARTED, 80f);
-			container1.operate(opCommand);
 
-			// finish loading container 1
-			opCommand = new ContainerOpCommand(container1.getId(),
-					OpStatus.LOADING_COMPLETED, container1.getUsedSize());
-			container1.operate(opCommand);
+			// load container
+			ContainerOpCommand opCommand = new ContainerOpCommand(container.getId(), 80f);
 
-			// transit container 1
-			ContainerTransitCommand transitCommand = new ContainerTransitCommand(container1.getId(),
-					TransitStatus.TRANSIT, LocalDateTime.now() );
-			container1.transit(transitCommand);
+			container.load(opCommand);
+
+			ContainerTransmitCommand transmitCommand =
+					new ContainerTransmitCommand(container.getId(), LocalDateTime.now() );
+
+			// board container to a ship
+			container.board(transmitCommand);
+
+			// depart container from origin
+			container.depart(transmitCommand);
+
+			// arrive container to destination
+			container.arrive(transmitCommand);
+
+			// off board container from a ship
+			container.offBoard(transmitCommand);
+
+			// start offloading container
+			container.offLoad(opCommand);
+
+			// release container
+			container.release(opCommand);
 		};
 	}
 }

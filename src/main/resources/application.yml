@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: acme-shipping
+  jpa:
+    hibernate.ddl-auto: update
+
+#axon:
+#  axonserver:
+#    servers: locahost:8124
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type: TRACE

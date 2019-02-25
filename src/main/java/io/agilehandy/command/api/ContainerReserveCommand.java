@@ -17,21 +17,26 @@
 
 package io.agilehandy.command.api;
 
-public enum TransitStatus {
+import lombok.AllArgsConstructor;
+import lombok.Value;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-	TRANSIT("TRANSIT"),
-	ARRIVED("ARRIVED"),
-	VESSELED("VESSLED"),
-	PARKED("PARKED")
-	;
+import java.util.UUID;
 
-	String value;
+/**
+ * @author Haytham Mohamed
+ **/
+@Value
+@AllArgsConstructor
+public class ContainerReserveCommand {
 
-	TransitStatus(String value) {
-		this.value = value;
-	}
+	@TargetAggregateIdentifier
+	UUID id;
 
-	public String getValue() {
-		return value;
-	}
+	UUID shipmentId;
+	TransmitType transitType;
+
+	String DestZoneName;
+	String DestPortName;
+
 }

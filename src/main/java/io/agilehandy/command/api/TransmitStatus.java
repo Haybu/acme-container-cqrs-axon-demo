@@ -17,17 +17,17 @@
 
 package io.agilehandy.command.api;
 
-public enum OpStatus {
+public enum TransmitStatus {
 
-	RESERVED("RESERVED"),
-	LOADED("LOADED"),
-	OFF_LOADED("OFFLOADED"),
-	RELEASED("RELEASED"),
+	BOARDED("BOARDED"),
+	DEPARTED("DEPARTED"),
+	ARRIVED("ARRIVED"),
+	OFF_BOARDED("OFF_BOARDED")
 	;
 
 	String value;
 
-	OpStatus(String value) {
+	TransmitStatus(String value) {
 		this.value = value;
 	}
 

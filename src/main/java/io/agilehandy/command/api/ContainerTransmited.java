@@ -17,21 +17,19 @@
 
 package io.agilehandy.command.api;
 
-public enum OpStatus {
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
-	RESERVED("RESERVED"),
-	LOADED("LOADED"),
-	OFF_LOADED("OFFLOADED"),
-	RELEASED("RELEASED"),
-	;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
-	String value;
-
-	OpStatus(String value) {
-		this.value = value;
-	}
-
-	public String getValue() {
-		return value;
-	}
+/**
+ * @author Haytham Mohamed
+ **/
+@Value
+@AllArgsConstructor
+public class ContainerTransmited {
+	UUID id;
+	TransmitStatus transitStatus;
+	LocalDateTime transitTimestamp;
 }

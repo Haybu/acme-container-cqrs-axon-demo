@@ -47,7 +47,6 @@ public class Container {
 	String currentZoneName;
 	String currentPortName;
 
-	Boolean isAssigned;
 	Boolean isShared;
 	LocalDateTime assignmentDate;
 	UUID shipmentId;
@@ -59,18 +58,54 @@ public class Container {
 	OpStatus opStatus;
 	LocalDateTime opTimestamp;
 
-	TransitType transitType;
-	TransitStatus transitStatus;
+	TransmitType transmitType;
+	TransmitStatus transmitStatus;
 	LocalDateTime transitTimestamp;
 
-	Boolean isEmpty() {
-		return (!this.getIsAssigned() && usedSize == 0);
+	boolean isEmpty() {
+		return this.usedSize == 0;
 	}
 
-	Boolean isAvailable() {
-		return (isEmpty() && transitStatus == TransitStatus.PARKED && opStatus == OpStatus.NO_OP);
+	boolean isFull() {
+		return this.size == this.usedSize;
 	}
 
+	boolean canReserve() {
+		return (isEmpty()
+				&& transmitStatus == TransmitStatus.OFF_BOARDED
+				&& opStatus == OpStatus.RELEASED);
+	}
+
+	boolean canLoad() {
+		return opStatus == OpStatus.RESERVED && this.transmitStatus == TransmitStatus.OFF_BOARDED
+				&& !isFull();
+	}
+
+	boolean canBoard() {
+		return opStatus == OpStatus.LOADED && this.transmitStatus == TransmitStatus.OFF_BOARDED;
+	}
+
+	boolean canDepart() {
+		return opStatus == OpStatus.LOADED && this.transmitStatus == TransmitStatus.BOARDED;
+	}
+
+	boolean canArrive() {
+		return opStatus == OpStatus.LOADED && this.transmitStatus == TransmitStatus.DEPARTED;
+	}
+
+	boolean canOffBoard() {
+		return opStatus == OpStatus.LOADED && this.transmitStatus == TransmitStatus.ARRIVED;
+	}
+
+	boolean canOffLoad() {
+		return opStatus == OpStatus.LOADED && this.transmitStatus == TransmitStatus.OFF_BOARDED;
+	}
+
+	boolean canRelease() {
+		return opStatus == OpStatus.OFF_LOADED && this.transmitStatus == TransmitStatus.OFF_BOARDED;
+	}
+
+	// creating a new container
 	@CommandHandler
 	public Container(ContainerCreateCommand containerCreateCommand){
 		Assert.notNull(containerCreateCommand.getCurrentZoneName(),
@@ -78,7 +113,10 @@ public class Container {
 		Assert.notNull(containerCreateCommand.getCurrentPortName(),
 				() ->"Must assign a container to a facility center name");
 
-		apply(new ContainerCreated(UUID.randomUUID(), 120f, "port-1", "zone-1"));
+		apply(new ContainerCreated(UUID.randomUUID(),
+				containerCreateCommand.getSize(),
+				containerCreateCommand.getCurrentZoneName(),
+				containerCreateCommand.getCurrentPortName()));
 	}
 
 	@EventSourcingHandler
@@ -88,65 +126,125 @@ public class Container {
 		this.currentPortName = this.getCurrentPortName();
 		this.currentZoneName = this.getCurrentZoneName();
 		this.usedSize = 0f;
-		this.opStatus = OpStatus.NO_OP;
-		this.transitStatus = TransitStatus.PARKED;
+		this.opStatus = OpStatus.RELEASED;
+		this.transmitStatus = TransmitStatus.OFF_BOARDED;
 	}
 
+	// reserve a container
 	@CommandHandler
-	public void book(ContainerBookCommand containerBookCommand) {
-		Assert.notNull(containerBookCommand.getId(), () -> "Container ID should be known to book");
-		// TODO: check others here.
-
-		apply (new ContainerBooked(containerBookCommand.getId(), containerBookCommand.getShipmentId(),
+	public void reserve(ContainerReserveCommand containerBookCommand) {
+		Assert.state(!canReserve(), () -> "Container is not available to reserve");
+		apply (new ContainerReserved(containerBookCommand.getId(),
+				LocalDateTime.now(),
+				containerBookCommand.getShipmentId(),
 				containerBookCommand.getTransitType(),
-				containerBookCommand.getDestZoneName()
-				, containerBookCommand.getDestPortName()));
+				containerBookCommand.getDestZoneName(),
+				containerBookCommand.getDestPortName(),
+				this.currentZoneName,
+				this.currentPortName
+				)
+		);
 	}
 
 	@EventSourcingHandler
-	public void on(ContainerBooked containerBooked) {
+	public void on(ContainerReserved containerBooked) {
 		this.shipmentId = containerBooked.getShipmentId();
 		this.originZoneName = this.currentZoneName;
 		this.originPortName = this.currentPortName;
 		this.destZoneName = containerBooked.getDestZoneName();
 		this.destPortName = containerBooked.getDestPortName();
-		if(this.isAssigned)
+		if(this.opStatus == OpStatus.RESERVED) { // if previously reserved, then share it with another customer
 			this.isShared = true;
-		else
+		} else {
 			this.isShared = false;
-		this.isAssigned = true;
+		}
+		this.opStatus = OpStatus.RESERVED;
 	}
 
+	// load a container
 	@CommandHandler
-	public void operate(ContainerOpCommand containerLoadCommand) {
+	public void load(ContainerOpCommand containerLoadCommand) {
+		Assert.state(!canLoad(), () -> "Container is not ready for loading");
 		apply(new ContainerOperated(containerLoadCommand.getId(),
-				OpStatus.LOADING_STARTED,
+				OpStatus.LOADED,
 				containerLoadCommand.getUsedSize(),
 				LocalDateTime.now()));
+	}
 
+	// off-load a container
+	@CommandHandler
+	public void offLoad(ContainerOpCommand containerLoadCommand) {
+		Assert.state(!canOffLoad(), () -> "Container is not ready for off loading");
+		apply(new ContainerOperated(containerLoadCommand.getId(),
+				OpStatus.OFF_LOADED,
+				containerLoadCommand.getUsedSize(),
+				LocalDateTime.now()));
+	}
+
+	// release a container
+	@CommandHandler
+	public void release(ContainerOpCommand containerLoadCommand) {
+		Assert.state(!canRelease(), () -> "Container is not ready to be released");
+		apply(new ContainerOperated(containerLoadCommand.getId(),
+				OpStatus.RELEASED,
+				containerLoadCommand.getUsedSize(),
+				LocalDateTime.now()));
 	}
 
 	@EventSourcingHandler
 	public void on(ContainerOperated containerLoaded) {
 		this.opStatus = containerLoaded.getOpStatus();
 		this.opTimestamp = containerLoaded.getLoadTimestamp();
-		if(this.opStatus == OpStatus.LOADING_COMPLETED)
+		if(this.opStatus == OpStatus.LOADED) {
 			this.usedSize = containerLoaded.getUsedSize();
+		}
 	}
 
+	// board a container to a ship
 	@CommandHandler
-	public void transit(ContainerTransitCommand containerTransitCommand) {
-		// TODO: validation
-		apply (new ContainerTransited(containerTransitCommand.getId(),
-				containerTransitCommand.getTransitStatus(),
+	public void board(ContainerTransmitCommand containerTransitCommand) {
+		Assert.state(!canBoard(), () -> "Container is not ready for boarding");
+		apply (new ContainerTransmited(containerTransitCommand.getId(),
+				TransmitStatus.BOARDED,
+				LocalDateTime.now()));
+	}
+
+	// depart a container
+	@CommandHandler
+	public void depart(ContainerTransmitCommand containerTransitCommand) {
+		Assert.state(!canDepart(), () -> "Container is not ready to depart");
+		apply (new ContainerTransmited(containerTransitCommand.getId(),
+				TransmitStatus.DEPARTED,
+				LocalDateTime.now()));
+	}
+
+	// arrive a container
+	@CommandHandler
+	public void arrive(ContainerTransmitCommand containerTransitCommand) {
+		Assert.state(!canArrive(), () -> "Cannot arrive container");
+		apply (new ContainerTransmited(containerTransitCommand.getId(),
+				TransmitStatus.ARRIVED,
+				LocalDateTime.now()));
+	}
+
+	// off board a container from a ship
+	@CommandHandler
+	public void offBoard(ContainerTransmitCommand containerTransitCommand) {
+		Assert.state(!canOffBoard(), () -> "Cannot off board container");
+		apply (new ContainerTransmited(containerTransitCommand.getId(),
+				TransmitStatus.OFF_BOARDED,
 				LocalDateTime.now()));
 	}
 
 	@EventSourcingHandler
-	public void on(ContainerTransited containerTranisted) {
-		this.transitStatus = containerTranisted.getTransitStatus();
-		this.transitTimestamp = containerTranisted.getTransitTimestamp();
-	}
+	public void on(ContainerTransmited containerTransmited) {
+		this.transmitStatus = containerTransmited.getTransitStatus();
+		this.transitTimestamp = containerTransmited.getTransitTimestamp();
 
+		if (transmitStatus == TransmitStatus.ARRIVED) {
+			this.currentZoneName = this.destZoneName;
+			this.currentPortName = this.destPortName;
+		}
+	}
 
 }

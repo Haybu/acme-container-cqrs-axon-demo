@@ -15,23 +15,18 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.query.inventory;
 
-public enum OpStatus {
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
-	RESERVED("RESERVED"),
-	LOADED("LOADED"),
-	OFF_LOADED("OFFLOADED"),
-	RELEASED("RELEASED"),
-	;
+/**
+ * @author Haytham Mohamed
+ **/
+@Value
+@AllArgsConstructor
+public class InventoryMTQuery {
 
-	String value;
-
-	OpStatus(String value) {
-		this.value = value;
-	}
-
-	public String getValue() {
-		return value;
-	}
+	String zoneName;
+	String portName;
 }

@@ -20,7 +20,7 @@ package io.agilehandy.command.api;
 /**
  * @author Haytham Mohamed
  **/
-public enum TransitType {
+public enum TransmitType {
 
 	EXPEDITED("EXPEDITED"),
 	STANDARD("STANDARD"),
@@ -29,7 +29,7 @@ public enum TransitType {
 
 	String value;
 
-	TransitType(String value) {
+	TransmitType(String value) {
 		this.value = value;
 	}
 

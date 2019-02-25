@@ -15,21 +15,35 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.query.inventory;
 
 import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * @author Haytham Mohamed
  **/
-@Value
+@Entity
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class ContainerTransited {
-	UUID id;
-	TransitStatus transitStatus;
-	LocalDateTime transitTimestamp;
+@Table(name = "RTI_MT")
+public class Inventory {
+
+	@EmbeddedId
+	private InventoryKey key;
+
+	private int availableContainers;
+	private int forecastContainers;
+
+	@NotNull
+	private LocalDateTime lastUpdated;
+
 }
