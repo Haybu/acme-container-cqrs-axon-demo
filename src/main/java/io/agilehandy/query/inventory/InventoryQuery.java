@@ -15,24 +15,18 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.query.inventory;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * @author Haytham Mohamed
  **/
 @Value
 @AllArgsConstructor
-public class ContainerTransmitCommand {
+public class InventoryQuery {
 
-	@TargetAggregateIdentifier
-	UUID id;
-	LocalDateTime transitTimestamp;
-
+	String zoneName;
+	String portName;
 }

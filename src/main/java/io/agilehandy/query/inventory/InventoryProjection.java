@@ -17,10 +17,12 @@
 
 package io.agilehandy.query.inventory;
 
-import io.agilehandy.command.api.ContainerCreated;
-import io.agilehandy.command.api.ContainerReserved;
+import io.agilehandy.command.api.evt.ContainerCreated;
+import io.agilehandy.command.api.evt.ContainerOpReserved;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventHandler;
+import org.axonframework.queryhandling.QueryHandler;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -30,28 +32,33 @@ import java.time.LocalDateTime;
  **/
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryProjection {
 
 	private final InventoryRepository repository;
 
 	// when creating a new container
 	@EventHandler
-	public void on(ContainerCreated containerCreated) {
-		Inventory mt = new Inventory();
-		mt.getKey().setZoneName(containerCreated.getCurrentZoneName());
-		mt.getKey().setPortName(containerCreated.getCurrentPortName());
-		mt.setAvailableContainers(1);
-		mt.setLastUpdated(LocalDateTime.now());
-		repository.save(mt);
+	public void on(ContainerCreated event) {
+		log.debug("projecting {}", event);
+		InventoryKey key = new InventoryKey();
+		key.setZoneName(event.getCurrentZoneName());
+		key.setPortName(event.getCurrentPortName());
+
+		Inventory inventory = new Inventory();
+		inventory.setKey(key);
+		inventory.setAvailableContainers(1);
+		inventory.setLastUpdated(LocalDateTime.now());
+		repository.save(inventory);
 	}
 
 
 	// When reserving a container update origin zone/port available containers
 	@EventHandler
-	public void onOrigin(ContainerReserved containerReserved) {
+	public void onOrigin(ContainerOpReserved event) {
+		log.debug("projecting {}", event);
 		Inventory originInventory = repository.findById(
-				new InventoryKey(containerReserved.getOrigZoneName()
-						, containerReserved.getOrigPortName())
+				new InventoryKey(event.getOrigZoneName(), event.getOrigPortName())
 		).orElseGet(() -> null);
 
 		if (originInventory != null && originInventory.getAvailableContainers() > 0) {
@@ -62,15 +69,21 @@ public class InventoryProjection {
 
 	// When reserving a container update destination zone/port forecast containers
 	@EventHandler
-	public void onDest(ContainerReserved containerReserved) {
+	public void onDest(ContainerOpReserved event) {
+		log.debug("projecting {}", event);
 		Inventory destInventory = repository.findById(
-				new InventoryKey(containerReserved.getDestZoneName()
-						, containerReserved.getDestPortName())
+				new InventoryKey(event.getDestZoneName(), event.getDestPortName())
 		).orElseGet(() -> null);
 		if (destInventory != null) {
 			destInventory.setForecastContainers(destInventory.getForecastContainers() + 1);
 			repository.save(destInventory);
 		}
+	}
+
+	@QueryHandler
+	public Inventory getAvailableInventory(InventoryQuery query) {
+		return repository.findById(new InventoryKey(query.getZoneName(), query.getPortName()))
+				.orElse(null);
 	}
 
 }

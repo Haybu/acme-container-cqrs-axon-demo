@@ -15,12 +15,12 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.command.api.evt;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -28,15 +28,8 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerReserveCommand {
-
-	@TargetAggregateIdentifier
+public class ContainerTransArrived {
 	UUID id;
 
-	UUID shipmentId;
-	TransmitType transitType;
-
-	String DestZoneName;
-	String DestPortName;
-
+	LocalDateTime timestamp;
 }

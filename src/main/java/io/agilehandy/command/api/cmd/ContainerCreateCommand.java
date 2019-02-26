@@ -15,12 +15,12 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.command.api.cmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -28,16 +28,13 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerReserved {
+public class ContainerCreateCommand {
+
+	@TargetAggregateIdentifier
 	UUID id;
 
-	LocalDateTime reservationDate;
+	Float size;
+	String currentZoneName;
+	String currentPortName;
 
-	UUID shipmentId;
-	TransmitType transitType;
-
-	String destZoneName;
-	String destPortName;
-	String OrigZoneName;
-	String OrigPortName;
 }

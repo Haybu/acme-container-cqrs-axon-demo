@@ -15,18 +15,21 @@
  */
 
 
-package io.agilehandy.query.inventory;
+package io.agilehandy.command.api.cmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
+
+import java.util.UUID;
 
 /**
  * @author Haytham Mohamed
  **/
 @Value
 @AllArgsConstructor
-public class InventoryMTQuery {
+public class ContainerOpReleasedCommand {
 
-	String zoneName;
-	String portName;
+	@TargetAggregateIdentifier
+	UUID id;
 }

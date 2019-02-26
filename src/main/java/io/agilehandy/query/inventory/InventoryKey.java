@@ -19,6 +19,7 @@ package io.agilehandy.query.inventory;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
@@ -30,6 +31,7 @@ import java.io.Serializable;
 @Embeddable
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class InventoryKey implements Serializable {
 
 	@NotNull

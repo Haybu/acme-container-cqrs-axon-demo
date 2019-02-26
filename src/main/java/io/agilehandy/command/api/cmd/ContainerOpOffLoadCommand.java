@@ -15,12 +15,12 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.command.api.cmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -28,11 +28,8 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerOperated {
+public class ContainerOpOffLoadCommand {
 
+	@TargetAggregateIdentifier
 	UUID id;
-	OpStatus opStatus;
-	Float usedSize;
-	LocalDateTime loadTimestamp;
-
 }

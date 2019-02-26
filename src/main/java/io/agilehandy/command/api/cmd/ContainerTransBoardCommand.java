@@ -15,7 +15,7 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.command.api.cmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -28,10 +28,9 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerOpCommand {
+public class ContainerTransBoardCommand {
 
 	@TargetAggregateIdentifier
 	UUID id;
-	Float usedSize;
 
 }

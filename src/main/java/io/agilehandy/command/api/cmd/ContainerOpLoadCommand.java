@@ -15,10 +15,11 @@
  */
 
 
-package io.agilehandy.command.api;
+package io.agilehandy.command.api.cmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 import java.util.UUID;
 
@@ -27,10 +28,10 @@ import java.util.UUID;
  **/
 @Value
 @AllArgsConstructor
-public class ContainerCreated {
+public class ContainerOpLoadCommand {
 
+	@TargetAggregateIdentifier
 	UUID id;
-	Float size;
-	String currentZoneName;
-	String currentPortName;
+	Float usedSize;
+
 }

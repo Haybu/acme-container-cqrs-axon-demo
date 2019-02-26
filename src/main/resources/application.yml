@@ -2,13 +2,14 @@ spring:
   application:
     name: acme-shipping
   jpa:
-    hibernate.ddl-auto: update
+    hibernate.ddl-auto: create-drop
+    generate-ddl: true
 
-#axon:
-#  axonserver:
-#    servers: locahost:8124
+axon:
+  axonserver:
+    servers: localhost:8124
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type: TRACE
+    org.hibernate.SQL: ERROR
+    org.hibernate.type: ERROR
